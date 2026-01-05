@@ -20,7 +20,11 @@
 }
 
 .shadow-glow {
-  box-shadow: 0 0 20px rgba(168, 85, 247, 0.4);
+  box-shadow: 0 0 30px rgba(201, 121, 67, 0.5);
+}
+
+.shadow-3xl {
+  box-shadow: 0 35px 70px rgba(0, 0, 0, 0.15);
 }
 
 /* ───────────────────────────────────────────────────────────── */
@@ -50,7 +54,36 @@ a {
 button:focus-visible,
 input:focus-visible,
 textarea:focus-visible {
-  outline: 2px solid #D4845C;
+  outline: 2px solid var(--accent-primary);
   outline-offset: 2px;
+}
+
+/* ───────────────────────────────────────────────────────────── */
+/* Custom Animations */
+/* ───────────────────────────────────────────────────────────── */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+@keyframes glow {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(201, 121, 67, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 40px rgba(201, 121, 67, 0.6);
+  }
+}
+
+.animate-glow {
+  animation: glow 2s ease-in-out infinite;
 }
 

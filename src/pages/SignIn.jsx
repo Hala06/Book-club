@@ -3,9 +3,13 @@
 // ═══════════════════════════════════════════════════════════
 // Cute and cozy sign-in screen with snowflake animations
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { signInWithGoogle } from '../firebase';
+import { 
+  signInWithGoogle,
+  signUpWithEmail,
+  signInWithEmail 
+} from '../firebase';
 import toast from 'react-hot-toast';
 import { motion as Motion } from 'framer-motion';
 import ThemeToggle from '../components/ThemeToggle';
@@ -14,13 +18,22 @@ import ThemeToggle from '../components/ThemeToggle';
 // Snowflake Animation Component
 // ───────────────────────────────────────────────────────────
 function Snowflakes() {
-  const snowflakes = Array.from({ length: 15 }, (_, i) => ({
-    id: i,
-    left: `${Math.random() * 100}%`,
-    delay: Math.random() * 5,
-    duration: 10 + Math.random() * 10,
-    size: 4 + Math.random() * 8
-  }));
+  const snowflakes = useMemo(() => 
+    Array.from({ length: 15 }, (_, i) => {
+      const randomLeft = Math.random() * 100;
+      const randomDelay = Math.random() * 5;
+      const randomDuration = 10 + Math.random() * 10;
+      const randomSize = 4 + Math.random() * 8;
+      
+      return {
+        id: i,
+        left: `${randomLeft}%`,
+        delay: randomDelay,
+        duration: randomDuration,
+        size: randomSize
+      };
+    })
+  , []);
 
   return (
     <div className="fixed inset-0 pointer-events-none z-5 overflow-hidden">
@@ -54,11 +67,16 @@ function Snowflakes() {
 export default function SignIn() {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
+  const [isSignUp, setIsSignUp] = useState(false); // To toggle between Sign In and Sign Up
+
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [displayName, setDisplayName] = useState('');
 
   // ─────────────────────────────────────────────────────────
   // Handle Google Sign-In
   // ─────────────────────────────────────────────────────────
-  const handleSignIn = async () => {
+  const handleGoogleSignIn = async () => {
     setIsLoading(true);
     try {
       await signInWithGoogle();
@@ -66,188 +84,159 @@ export default function SignIn() {
       navigate('/dashboard');
     } catch (err) {
       console.error('Sign in error:', err);
-      toast.error('Sign-in failed. Please try again.');
+      toast.error(err.message || 'Sign-in failed. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // ─────────────────────────────────────────────────────────
+  // Handle Email/Password Sign In or Sign Up
+  // ─────────────────────────────────────────────────────────
+  const handleEmailAuth = async (e) => {
+    e.preventDefault();
+    setIsLoading(true);
+    try {
+      if (isSignUp) {
+        await signUpWithEmail(email, password, displayName);
+        toast.success('Account created successfully! Welcome! 📚');
+      } else {
+        await signInWithEmail(email, password);
+        toast.success('Welcome back! 📚');
+      }
+      navigate('/dashboard');
+    } catch (err) {
+      console.error(`${isSignUp ? 'Sign up' : 'Sign in'} error:`, err);
+      toast.error(err.message || `${isSignUp ? 'Sign up' : 'Sign in'} failed. Please try again.`);
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#FFF8F0] via-[#FFF5E8] to-[#FFE8D6] dark:from-[#1A1815] dark:via-[#252220] dark:to-[#2D2926] text-[var(--text-primary)] flex flex-col relative overflow-hidden transition-colors duration-300">
+    <div className="min-h-screen bg-[var(--bg-primary)] text-[var(--text-primary)] flex items-center justify-center relative overflow-hidden transition-colors duration-300 p-4">
       
-      {/* ───────────────────────────────────────────────── */}
-      {/* Animated Snowflakes */}
-      {/* ───────────────────────────────────────────────── */}
-      <Snowflakes />
+      <div className="fixed top-6 right-6 z-20">
+        <ThemeToggle variant="icon" />
+      </div>
 
-      {/* ───────────────────────────────────────────────── */}
-      {/* Animated Background Orbs */}
-      {/* ───────────────────────────────────────────────── */}
       <div className="absolute inset-0 overflow-hidden z-0">
         <Motion.div
-          className="absolute top-20 right-20 w-96 h-96 bg-[#B4E7CE]/20 dark:bg-[#B4E7CE]/10 rounded-full filter blur-[100px]"
-          animate={{ x: [0, -30, 0], y: [0, 30, 0] }}
-          transition={{ duration: 15, repeat: Infinity, ease: 'linear' }}
+          className="absolute -top-1/4 -left-1/4 w-1/2 h-1/2 bg-[var(--accent-primary)]/15 rounded-full filter blur-[150px]"
+          animate={{ x: [0, 100, 0], y: [0, -80, 0] }}
+          transition={{ duration: 25, repeat: Infinity, ease: 'easeInOut' }}
         />
         <Motion.div
-          className="absolute bottom-20 left-20 w-96 h-96 bg-[#FFB8D1]/20 dark:bg-[#FFB8D1]/10 rounded-full filter blur-[100px]"
-          animate={{ x: [0, 40, 0], y: [0, -40, 0] }}
-          transition={{ duration: 18, repeat: Infinity, ease: 'linear' }}
+          className="absolute -bottom-1/4 -right-1/4 w-1/2 h-1/2 bg-[var(--accent-secondary)]/15 rounded-full filter blur-[150px]"
+          animate={{ x: [0, -100, 0], y: [0, 80, 0] }}
+          transition={{ duration: 22, repeat: Infinity, ease: 'easeInOut' }}
         />
       </div>
 
-      {/* ───────────────────────────────────────────────── */}
-      {/* Header */}
-      {/* ───────────────────────────────────────────────── */}
-      <header className="mx-auto w-full max-w-6xl px-6 py-6 flex items-center justify-between relative z-10">
-        <button
-          onClick={() => navigate('/')}
-          className="text-sm font-semibold text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors flex items-center gap-2 px-4 py-2 rounded-full hover:bg-[var(--bg-card)] border border-transparent hover:border-[var(--border-color)]"
+      <div className="relative z-10 grid lg:grid-cols-2 items-center max-w-6xl w-full bg-[var(--bg-card)]/80 backdrop-blur-2xl border-2 border-[var(--border-color)] rounded-3xl shadow-2xl overflow-hidden">
+        
+        {/* Left side - Image */}
+        <div className="hidden lg:flex items-center justify-center h-full p-8 bg-gradient-to-br from-[var(--accent-primary)]/10 to-[var(--accent-secondary)]/10">
+          <Motion.img 
+            src="/books.png" 
+            alt="Books illustration" 
+            className="w-full max-w-sm"
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.8, delay: 0.4 }}
+          />
+        </div>
+
+        {/* Right side - Form */}
+        <Motion.div 
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.7, delay: 0.2 }}
+          className="p-12"
         >
-          ← Back to Home
-        </button>
-      </header>
-
-      {/* ───────────────────────────────────────────────── */}
-      {/* Main Content */}
-      {/* ───────────────────────────────────────────────── */}
-      <main className="flex-1 flex items-center justify-center px-4 py-10 relative z-10">
-        <div className="w-full max-w-6xl grid gap-16 lg:grid-cols-2 items-center">
-          
-          {/* ─────────────────────────────────────────────── */}
-          {/* Left Column: Welcome Text */}
-          {/* ─────────────────────────────────────────────── */}
-          <Motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6 }}
-          >
-            <div className="inline-flex items-center gap-2 rounded-full border border-[var(--border-color)] bg-[var(--bg-card)] px-5 py-2 text-sm font-medium text-[var(--text-secondary)] mb-8 shadow-sm">
-              ✨ Real-time • 💬 Comments • 👥 Friends
-            </div>
-
-            <h1 className="text-5xl md:text-7xl font-bold tracking-tight mb-6" style={{ fontFamily: 'var(--font-reading)' }}>
-              Welcome to <br/>
-              <span className="bg-gradient-to-r from-[#D4845C] to-[#E8B17A] dark:from-[#E8B17A] dark:to-[#F0C794] bg-clip-text text-transparent">
-                BookClub Live
-              </span>
+          <div className="text-center mb-8">
+            <h1 
+              className="text-5xl font-bold mb-2 bg-gradient-to-r from-[var(--accent-primary)] to-[var(--accent-secondary)] bg-clip-text text-transparent"
+              style={{ fontFamily: 'var(--font-reading)' }}
+            >
+              {isSignUp ? 'Create Account' : 'Welcome Back'}
             </h1>
             
-            <p className="text-xl text-[var(--text-secondary)] mb-10 leading-relaxed max-w-lg">
-              Your cozy digital corner to read together, highlight together, and share moments with friends in real-time.
+            <p className="text-lg text-[var(--text-secondary)]">
+              {isSignUp ? 'Join the club!' : 'Sign in to access your library.'}
             </p>
+          </div>
 
-            {/* ───────────────────────────────────────────── */}
-            {/* Sign In Button */}
-            {/* ───────────────────────────────────────────── */}
+          <form onSubmit={handleEmailAuth} className="space-y-6">
+            {isSignUp && (
+              <input
+                type="text"
+                placeholder="Display Name"
+                value={displayName}
+                onChange={(e) => setDisplayName(e.target.value)}
+                required
+                className="w-full px-5 py-4 border-2 border-[var(--border-color)] rounded-xl focus:border-[var(--accent-primary)] focus:outline-none bg-[var(--bg-secondary)] text-[var(--text-primary)] placeholder:text-[var(--text-secondary)]/60 font-semibold transition-all"
+              />
+            )}
+            <input
+              type="email"
+              placeholder="Email Address"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              className="w-full px-5 py-4 border-2 border-[var(--border-color)] rounded-xl focus:border-[var(--accent-primary)] focus:outline-none bg-[var(--bg-secondary)] text-[var(--text-primary)] placeholder:text-[var(--text-secondary)]/60 font-semibold transition-all"
+            />
+            <input
+              type="password"
+              placeholder="Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              minLength={6}
+              className="w-full px-5 py-4 border-2 border-[var(--border-color)] rounded-xl focus:border-[var(--accent-primary)] focus:outline-none bg-[var(--bg-secondary)] text-[var(--text-primary)] placeholder:text-[var(--text-secondary)]/60 font-semibold transition-all"
+            />
+
             <Motion.button
-              whileHover={{ scale: 1.03, boxShadow: '0 25px 50px rgba(212, 132, 92, 0.3)' }}
-              whileTap={{ scale: 0.98 }}
-              onClick={handleSignIn}
+              type="submit"
               disabled={isLoading}
-              className="group relative inline-flex items-center justify-center gap-4 rounded-2xl bg-[var(--accent-primary)] text-white px-10 py-5 text-lg font-bold shadow-2xl hover:shadow-3xl transition-all disabled:opacity-60 disabled:cursor-not-allowed w-full sm:w-auto"
+              whileHover={{ scale: 1.02, boxShadow: '0 10px 30px -10px rgba(201, 121, 67, 0.4)' }}
+              whileTap={{ scale: 0.99 }}
+              className="w-full bg-gradient-to-r from-[var(--accent-primary)] to-[var(--accent-secondary)] text-white px-8 py-4 rounded-xl shadow-lg hover:shadow-xl transition-all text-lg font-bold disabled:opacity-60"
             >
-              {isLoading ? (
-                <span>Signing in...</span>
-              ) : (
-                <>
-                  <span className="text-3xl">🔵</span>
-                  <span>Sign in with Google</span>
-                  <Motion.span 
-                    className="text-2xl"
-                    animate={{ x: [0, 5, 0] }}
-                    transition={{ duration: 1.5, repeat: Infinity }}
-                  >
-                    →
-                  </Motion.span>
-                </>
-              )}
+              {isLoading ? 'Processing...' : (isSignUp ? 'Sign Up' : 'Sign In')}
             </Motion.button>
+          </form>
 
-            <p className="mt-6 text-sm text-[var(--text-secondary)]">
-              By signing in, you agree to be nice and have fun! 🎈
-            </p>
-          </Motion.div>
+          <div className="flex items-center my-6">
+            <hr className="flex-grow border-t border-[var(--border-color)]" />
+            <span className="mx-4 text-sm font-semibold text-[var(--text-secondary)]">OR</span>
+            <hr className="flex-grow border-t border-[var(--border-color)]" />
+          </div>
 
-          {/* ─────────────────────────────────────────────── */}
-          {/* Right Column: Decorative Card with Books Image */}
-          {/* ─────────────────────────────────────────────── */}
-          <Motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            className="relative"
+          <Motion.button
+            onClick={handleGoogleSignIn}
+            disabled={isLoading}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.99 }}
+            className="w-full flex items-center justify-center gap-3 bg-[var(--bg-secondary)] border-2 border-[var(--border-color)] text-[var(--text-primary)] px-8 py-4 rounded-xl shadow-md hover:shadow-lg transition-all text-lg font-bold disabled:opacity-60"
           >
-            {/* Decorative Background Blur */}
-            <div className="absolute inset-0 bg-gradient-to-br from-[#E8B17A]/20 to-[#B4E7CE]/20 rounded-[3rem] blur-3xl opacity-60 transform rotate-6" />
-            
-            {/* Main Card */}
-            <div className="relative bg-[var(--bg-card)] border-2 border-[var(--border-color)] rounded-[3rem] p-10 shadow-2xl overflow-hidden backdrop-blur-sm">
-              
-              {/* Decorative Circles */}
-              <Motion.div 
-                className="absolute -top-12 -right-12 w-48 h-48 bg-gradient-to-br from-[#E8B17A]/20 to-[#B4E7CE]/20 dark:from-[#E8B17A]/10 dark:to-[#B4E7CE]/10 rounded-full"
-                animate={{ rotate: 360 }}
-                transition={{ duration: 20, repeat: Infinity, ease: 'linear' }}
-              />
-              <Motion.div 
-                className="absolute -bottom-12 -left-12 w-48 h-48 bg-gradient-to-br from-[#FFB8D1]/20 to-[#E8B17A]/20 dark:from-[#FFB8D1]/10 dark:to-[#E8B17A]/10 rounded-full"
-                animate={{ rotate: -360 }}
-                transition={{ duration: 25, repeat: Infinity, ease: 'linear' }}
-              />
+            <svg className="w-6 h-6" role="img" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><title>Google</title><path d="M12.48 10.92v3.28h7.84c-.24 1.84-.85 3.18-1.73 4.1-1.02 1.02-2.62 1.9-4.63 1.9-3.87 0-7-3.13-7-7s3.13-7 7-7c2.25 0 3.67.87 4.55 1.7l2.47-2.47C18.68 2.05 16.14 1 12.48 1 7.03 1 3 5.03 3 9.5s4.03 8.5 9.48 8.5c2.9 0 5.2-1 6.85-2.65.85-.85 1.5-2.15 1.5-3.85 0-.7-.1-1.35-.25-1.95H12.48z"/></svg>
+            <span>Sign In with Google</span>
+          </Motion.button>
 
-              {/* Card Content */}
-              <div className="relative z-10 flex flex-col items-center text-center space-y-8 py-8">
-                <Motion.div 
-                  className="mb-2"
-                  animate={{ y: [0, -10, 0] }}
-                  transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
-                >
-                  <img src="/books.png" alt="Books" className="w-32 h-32 object-contain" />
-                </Motion.div>
-                
-                <h3 className="text-3xl font-bold" style={{ fontFamily: 'var(--font-reading)' }}>
-                  Ready to read?
-                </h3>
-                
-                <p className="text-[var(--text-secondary)] text-lg max-w-sm">
-                  Join thousands of readers sharing their thoughts and highlights in real-time.
-                </p>
-                
-                {/* Feature Grid */}
-                <div className="grid grid-cols-3 gap-4 w-full mt-6">
-                  <Motion.div 
-                    className="bg-[var(--bg-secondary)] p-4 rounded-2xl text-center"
-                    whileHover={{ scale: 1.05, y: -5 }}
-                    transition={{ type: 'spring', stiffness: 300 }}
-                  >
-                    <div className="text-3xl mb-2">📌</div>
-                    <div className="text-xs font-bold">Bookmark</div>
-                  </Motion.div>
-                  
-                  <Motion.div 
-                    className="bg-[var(--bg-secondary)] p-4 rounded-2xl text-center"
-                    whileHover={{ scale: 1.05, y: -5 }}
-                    transition={{ type: 'spring', stiffness: 300 }}
-                  >
-                    <div className="text-3xl mb-2">🖍️</div>
-                    <div className="text-xs font-bold">Highlight</div>
-                  </Motion.div>
-                  
-                  <Motion.div 
-                    className="bg-[var(--bg-secondary)] p-4 rounded-2xl text-center"
-                    whileHover={{ scale: 1.05, y: -5 }}
-                    transition={{ type: 'spring', stiffness: 300 }}
-                  >
-                    <div className="text-3xl mb-2">💬</div>
-                    <div className="text-xs font-bold">Discuss</div>
-                  </Motion.div>
-                </div>
-              </div>
-            </div>
-          </Motion.div>
-        </div>
-      </main>
+          <div className="mt-8 text-center">
+            <p className="text-[var(--text-secondary)]">
+              {isSignUp ? 'Already have an account?' : "Don't have an account?"}
+              <button 
+                onClick={() => setIsSignUp(!isSignUp)} 
+                className="font-bold text-[var(--accent-primary)] hover:underline ml-2"
+              >
+                {isSignUp ? 'Sign In' : 'Sign Up'}
+              </button>
+            </p>
+          </div>
+        </Motion.div>
+      </div>
     </div>
   );
 }

@@ -5,20 +5,29 @@
 // real-time database functionality
 
 import { initializeApp } from "firebase/app";
-import { getAuth, GoogleAuthProvider, signInWithPopup, signOut } from "firebase/auth";
+import { 
+  getAuth, 
+  GoogleAuthProvider, 
+  signInWithPopup, 
+  signOut,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  updateProfile
+} from "firebase/auth";
 import { getDatabase, ref, set, onValue, push, update, remove, onDisconnect } from "firebase/database";
 
 // ───────────────────────────────────────────────────────────
 // Firebase Project Configuration
 // ───────────────────────────────────────────────────────────
+// Environment variables are loaded from .env file (never pushed to GitHub)
 const firebaseConfig = {
-  apiKey: "AIzaSyC3IWF6CiqkJzRlFY3ZTWnUg-79_vrxoO8",
-  authDomain: "bookclub-live.firebaseapp.com",
-  projectId: "bookclub-live",
-  storageBucket: "bookclub-live.firebasestorage.app",
-  messagingSenderId: "894738527082",
-  appId: "1:894738527082:web:86b550caeb613efff7ab13",
-  databaseURL: "https://bookclub-live-default-rtdb.firebaseio.com/"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  databaseURL: import.meta.env.VITE_FIREBASE_DATABASE_URL
 };
 
 // ───────────────────────────────────────────────────────────
@@ -60,6 +69,34 @@ export const logOut = async () => {
     await signOut(auth);
   } catch (error) {
     console.error("Error signing out:", error);
+    throw error;
+  }
+};
+
+/**
+ * Create a new user with email and password
+ */
+export const signUpWithEmail = async (email, password, displayName) => {
+  try {
+    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+    // Update user profile with display name
+    await updateProfile(userCredential.user, { displayName });
+    return userCredential.user;
+  } catch (error) {
+    console.error("Error signing up with email:", error);
+    throw error;
+  }
+};
+
+/**
+ * Sign in an existing user with email and password
+ */
+export const signInWithEmail = async (email, password) => {
+  try {
+    const result = await signInWithEmailAndPassword(auth, email, password);
+    return result.user;
+  } catch (error) {
+    console.error("Error signing in with email:", error);
     throw error;
   }
 };

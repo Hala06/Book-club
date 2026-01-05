@@ -10,21 +10,23 @@
 /* Base Styles */
 /* ───────────────────────────────────────────────────────────── */
 :root {
-  /* Light Mode Colors */
-  --bg-primary: #FFF8F0;
+  /* Light Mode Colors - Warm Cozy Palette */
+  --bg-primary: #FFFBF3;
   --bg-secondary: #FFF5E8;
   --bg-tertiary: #FFE8D6;
   --bg-card: #FFFFFF;
-  --text-primary: #2D2A26;
-  --text-secondary: #6B6762;
-  --accent-primary: #D4845C;
-  --accent-secondary: #E8B17A;
+  --text-primary: #3D2C24;
+  --text-secondary: #7A6550;
+  --accent-primary: #C97943;
+  --accent-secondary: #D4845C;
+  --accent-tertiary: #E8B17A;
   --highlight-you: #FFE785;
   --highlight-friend-1: #B4E7CE;
   --highlight-friend-2: #C9B4E7;
   --highlight-friend-3: #FFB8D1;
   --border-color: #E8DFD0;
   --shadow-color: rgba(45, 42, 38, 0.08);
+  --shadow-strong: rgba(201, 121, 67, 0.15);
   --font-reading: 'Crimson Pro', serif;
   --font-ui: 'Inter', system-ui, Avenir, Helvetica, Arial, sans-serif;
 
@@ -38,22 +40,24 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Dark Mode Colors */
+/* Dark Mode Colors - Cozy Dark Library */
 .dark {
-  --bg-primary: #1A1815;
-  --bg-secondary: #252220;
-  --bg-tertiary: #3D3835;
-  --bg-card: #2D2926;
-  --text-primary: #F5F1E8;
-  --text-secondary: #B8B3A8;
+  --bg-primary: #1C1410;
+  --bg-secondary: #2A221C;
+  --bg-tertiary: #3D3229;
+  --bg-card: #2D2521;
+  --text-primary: #F5EFE7;
+  --text-secondary: #B8AC9F;
   --accent-primary: #E89B73;
-  --accent-secondary: #F0C794;
+  --accent-secondary: #D4845C;
+  --accent-tertiary: #F0C794;
   --highlight-you: #FFE785;
   --highlight-friend-1: #7DD4AC;
   --highlight-friend-2: #B794E7;
   --highlight-friend-3: #FFB8D1;
-  --border-color: #3D3835;
-  --shadow-color: rgba(0, 0, 0, 0.3);
+  --border-color: #3D3229;
+  --shadow-color: rgba(0, 0, 0, 0.4);
+  --shadow-strong: rgba(232, 155, 115, 0.2);
 }
 
 * {
